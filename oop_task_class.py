@@ -1,5 +1,5 @@
 """This module is for practicing class creation and class inheritance."""
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from copy import copy, deepcopy
 
 
@@ -9,12 +9,10 @@ class Engine:
         """This method initializes the fields engine of the class Engine"""
         self.engine = engine_type
 
-
     @staticmethod
     def desc():
         """This method is static method of the class Engine"""
         print("Vehicle engines can be gasoline, diesel, gas, electric and hybrid")
-
 
     def __get__(self, instance, owner):
         """Allows you to define the value obtained when accessing
@@ -27,12 +25,10 @@ class Engine:
         self.engine = engine
 
 
-class Transport:
+class Transport(ABC):
     """This is the parent class from which 4 classes inherit"""
     VERSION = "1.0.1"
     DESCRIPTOIN = "some description"
-    OBJECTS = 0
-
 
     def __init__(self, type_transport, number_seats):
         """This method initializes the fields type_transport, number_seats of the class Transport"""
@@ -40,13 +36,10 @@ class Transport:
         self.number_seats = number_seats
         self.__some_val = "SOME VALUE!"
         self.running = False
-        Transport.OBJECTS = Transport.OBJECTS + 1
-
 
     def __str__(self):
         """This method displays information about the class object"""
         return "This transport is {} with {} seats".format(self.type_transport, self.number_seats)
-
 
     def invert_running(self):
         """Method for stopping or starting transport"""
@@ -57,12 +50,10 @@ class Transport:
         else:
             print("Now stopped")
 
-
     @abstractmethod
     def print_info(self):
         """This method is abstract method of the class Transport"""
         print("this is abstract method")
-
 
     @property
     def some_val(self):
@@ -71,16 +62,9 @@ class Transport:
         return self.__some_val.lower()
 
 
-    @classmethod
-    def count_objects(cls):
-        """This method is classmethod of the class Transport,
-        it is a method that is attached to a class, not an instance of the class"""
-        print("Objects: ", cls.OBJECTS)
-
-
-
 class Car(Transport, Engine):
     """This is a descendant class of the Transport class"""
+    OBJECTS = 0
 
     def __init__(self, type_transport, number_seats, brand, characteristics):
         """This method initializes the fields brand, characteristics of the class Car
@@ -89,22 +73,20 @@ class Car(Transport, Engine):
         self.characteristics = characteristics
         Transport.__init__(self, type_transport=type_transport, number_seats=number_seats)
         Engine.__init__(self, engine_type="hybrid")
+        Car.OBJECTS = Car.OBJECTS + 1
 
     def __str__(self):
         """This method displays information about the class object"""
         return "This transport is {} with {} seats, this is {} brand with ch-cs {}"\
         .format(self.type_transport, self.number_seats, self.brand, self.characteristics)
 
-
     def print_info(self):
         """This method is abstract method of the class Transport"""
         print("Just something for class Car")
 
-
     def __call__(self, brand):
         """This magic method allows you to call an instance of a class as a function"""
         self.brand = brand
-
 
     def __copy__(self):
         """This method allows you to override the behavior when you try to use
@@ -114,7 +96,6 @@ class Car(Transport, Engine):
         result = cls.__new__(cls)
         result.__dict__.update(self.__dict__)
         return result
-
 
     def __deepcopy__(self, memo):
         """This method allows you to override the behavior when you try to deep
@@ -131,10 +112,15 @@ class Car(Transport, Engine):
         in the object, otherwise False."""
         return item in self.characteristics
 
-
     def __index__(self):
         """Allows the object to be used as an index"""
         return 0
+
+    @classmethod
+    def count_objects(cls):
+        """This method is classmethod of the class Car,
+        it is a method that is attached to a class, not an instance of the class"""
+        print("Objects: ", cls.OBJECTS)
 
 
 class Bus(Transport, Engine):
@@ -147,22 +133,18 @@ class Bus(Transport, Engine):
         Transport.__init__(self, type_transport=type_transport, number_seats=number_seats)
         Engine.__init__(self, engine_type="diesel")
 
-
     def __str__(self):
         """This method displays information about the class object"""
         return "This transport is {} with {} seats, the trip will cost {}"\
         .format(self.type_transport, self.number_seats, self.trip_price)
 
-
     def print_info(self):
         """This method is abstract method of the class Transport"""
         print("Just something for class Bus")
 
-
     def __call__(self, trip_price):
         """This magic method allows you to call an instance of a class as a function"""
         self.trip_price = trip_price
-
 
     def __index__(self):
         """Allows the object to be used as an index"""
@@ -179,7 +161,6 @@ class Motorcycle(Transport, Engine):
         Transport.__init__(self, type_transport=type_transport, number_seats=number_seats)
         Engine.__init__(self, engine_type="diesel")
 
-
     def __str__(self):
         """This method displays information about the class object"""
         return "This transport is {} with {} seats and {} maximum speed"\
@@ -189,16 +170,13 @@ class Motorcycle(Transport, Engine):
         """This method is abstract method of the class Transport"""
         print("Just something for class Motorcycle")
 
-
     def __call__(self, max_speed):
         """This magic method allows you to call an instance of a class as a function"""
         self.max_speed = max_speed
 
-
     def __index__(self):
         """Allows the object to be used as an index"""
         return 2
-
 
 
 class Train(Transport, Engine):
@@ -217,16 +195,13 @@ class Train(Transport, Engine):
         return "This transport is {} with {} seats and {} cars, the trip will cost {}" \
         . format(self.type_transport, self.number_seats, self.num_of_cars, self.trip_price)
 
-
     def print_info(self):
         """This method is abstract method of the class Transport"""
         print("Just something for class Train")
 
-
     def __call__(self, trip_price, num_of_cars):
         """This magic method allows you to call an instance of a class as a function"""
         self.trip_price, self.num_of_cars = trip_price, num_of_cars
-
 
     def __index__(self):
         """Allows the object to be used as an index"""
@@ -238,10 +213,10 @@ print(en.engine)
 en.engine = "hybrid"
 print(en.engine)
 
-tr1 = Transport("private", 5)
-tr2 = Transport("hybrid", 10)
-tr3 = Transport("electric", 4)
-Transport.count_objects()
+car11 = Car("private", 5, "Mazda", [78.6, 89.0, 44.1])
+car22 = Car("private", 4, "Reno", [76.6, 83.0, 41.1])
+car33 = Car("private", 6, "Lada", [54.6, 76.0, 34.1])
+Car.count_objects()
 
 car = Car("private", 5, "Mazda", [78.6, 89.0, 44.1])
 car.invert_running()
