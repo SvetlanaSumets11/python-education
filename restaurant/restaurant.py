@@ -86,7 +86,7 @@ class CustomerOutside:
     def __str__(self):
         """Returns a string describing the entity"""
         return "Customer name: {}\nTelephone: {}\nDelivery address: {}"\
-        .format(self.__last_name, self.__telephone, self.__address)
+            .format(self.__last_name, self.__telephone, self.__address)
 
     def change_adress(self, new_adress):
         """Changes delivery address"""
@@ -117,11 +117,8 @@ class Employee(ABC):
     """This is the restaurant worker entity class"""
     def __init__(self, *args):
         """Initializing Class Fields"""
-        self._first_name = args[0]
-        self._last_name = args[1]
-        self._telephone = args[2]
-        self._salary = args[2]
-        args[4].append_employee(self)
+        self._first_name, self._last_name, self._telephone, self._salary, _ = args
+        args[-1].append_employee(self)
 
     @property
     def first_name(self):
@@ -140,11 +137,30 @@ class Cook(Employee):
         """Initializing Class Fields"""
         Employee.__init__(self, *args[:-1])
         self.__cook_type = args[-1]
+        self.__cooking_dish = []
 
     def __str__(self):
         """Returns a string describing the entity"""
         return "First name: {}\nLast name: {}\nTelephone: {}\nSalary: {}\nCook type: {}"\
-        .format(self._first_name, self._last_name, self._telephone, self._salary,self.__cook_type)
+            .format(self._first_name,
+                    self._last_name,
+                    self._telephone,
+                    self._salary,
+                    self.__cook_type)
+
+    @property
+    def cooking_dish(self):
+        """Special functionality to a method cooking_dish so that it acts like a getter."""
+        return self.__cooking_dish
+
+    def change_flag_rediness(self, id_dish: int, order):
+        """The chef changes the status of the dish to true (cooked), this dish is automatically
+        removed from the chef's list of dishes to be prepared (which was added there when
+        creating an order in the restaurant), and the prepared dish is added to the waiter's
+        list of ready-to-go dishes."""
+        order.flag_rediness[id_dish] = True
+        self.cooking_dish.remove(order.dishes[id_dish])
+        order.waiter.ready_take_out.append(order.dishes[id_dish])
 
 
 class Waiter(Employee):
@@ -153,29 +169,40 @@ class Waiter(Employee):
         """Initializing Class Fields"""
         Employee.__init__(self, *args[:-1])
         self.__hall = args[-1]
+        self.__ready_take_out = []
 
     def __str__(self):
         """Returns a string describing the entity"""
         return "First name: {}\nLast name: {}\nTelephone: {}\nSalary: {}\nHall: {}"\
-        .format(self._first_name, self._last_name, self._telephone, self._salary, self.__hall)
+            .format(self._first_name, self._last_name, self._telephone, self._salary, self.__hall)
+
+    @property
+    def ready_take_out(self):
+        """Special functionality to a method ready_take_out so that it acts like a getter."""
+        return self.__ready_take_out
+
+    def change_flag_rediness(self, id_dish: int, order):
+        """the waiter changes the status of the dish to neutral, when the dish is taken out,
+        it is automatically removed from the waiter's takeaway list"""
+        order.flag_rediness[id_dish] = False
+        self.ready_take_out.remove(order.dishes[id_dish])
 
 
 class Dish:
     """This is the entity class of the menu item"""
     def __init__(self, *args):
         """Initializing Class Fields"""
-        self.__dish_name = args[0]
-        self.__ingredients = args[1]
-        self.__dish_price = args[2]
-        self.__dish_type = args[3]
-        self.__cook = args[4]
-        args[5].menu.append(self)
+        self.__dish_name, self.__ingredients, self.__dish_price, \
+        self.__dish_type, self.__cook, _ = args
+        args[-1].menu.append(self)
 
     def __str__(self):
         """Returns a string describing the entity"""
         return "Dish name: {}\nIgredients: {}\nPrice: {}\nType: {}"\
-        .format(self.__dish_name, ', '.join(self.__ingredients),
-            self.__dish_price, self.__dish_type)
+            .format(self.__dish_name,
+                    ', '.join(self.__ingredients),
+                    self.__dish_price,
+                    self.__dish_type)
 
     @property
     def dish_name(self):
@@ -186,6 +213,11 @@ class Dish:
     def dish_price(self):
         """Special functionality to a method dish_price so that it acts like a getter."""
         return self.__dish_price
+
+    @property
+    def cook(self):
+        """Special functionality to a method cook so that it acts like a getter."""
+        return self.__cook
 
 
 class Order(ABC):
@@ -231,13 +263,28 @@ class OrderInside(Order):
         Order.__init__(self, dishes, rest)
         self.__customer = customer
         self.__waiter = waiter
+        self.__flag_rediness = [False] * len(dishes)
+        for dish in dishes:
+            dish.cook.cooking_dish.append(dish)
 
     def __str__(self):
         """Returns a string describing the entity"""
         dishes_names = ', '.join([dish.dish_name for dish in self._dishes])
-        return "Dishes: {}\nTable numder: {}\nWaiter: {} {}"\
-        .format(dishes_names, self.__customer.table_num,
-            self.__waiter.first_name, self.__waiter.last_name)
+        return "Dishes: {}\nTable numder: {}\nWaiter: {} {}" \
+            .format(dishes_names,
+                    self.__customer.table_num,
+                    self.__waiter.first_name,
+                    self.__waiter.last_name)
+
+    @property
+    def flag_rediness(self):
+        """Special functionality to a method flag_rediness so that it acts like a getter."""
+        return self.__flag_rediness
+
+    @property
+    def waiter(self):
+        """Special functionality to a method waiter so that it acts like a getter."""
+        return self.__waiter
 
 
 class OrderOutside(Order):
@@ -251,8 +298,7 @@ class OrderOutside(Order):
         """Returns a string describing the entity"""
         dishes_names = ', '.join([dish.dish_name for dish in self._dishes])
         return "Dishes: {}\nCustomer name: {}\nAdress: {}"\
-        .format(dishes_names, self.__customer.last_name, self.__customer.address)
-
+            .format(dishes_names, self.__customer.last_name, self.__customer.address)
 
 
 restaurant = Restaurant("Klod Mone", "Franch")
@@ -260,32 +306,33 @@ restaurant = Restaurant("Klod Mone", "Franch")
 vlad = Cook("Петров", "Василий", 380966666666, 4000, restaurant, "сушеф")
 
 soup = Dish("Суп харчо", ["говядина", "рис", "хмели-сунели"], 45, "холодные", vlad, restaurant)
-salad = Dish("Салат Цезарь", ["листья салата", "куриное филе", "помидоры", "сыр пармезан"],
-    34, "салаты", vlad, restaurant)
+salad = Dish("Салат Цезарь",
+             ["листья салата", "куриное филе", "помидоры", "сыр пармезан"],
+             34, "салаты", vlad, restaurant)
 
 kirill = CustomerInside(10)
 svetlana = CustomerOutside("Светлана", 380977777777, "ул. Гв.Широнинцев, д.1, кв.1")
-
 anna = Waiter("Чигура", "Анна", 380999999999, 3000, restaurant, 1)
-
-kirill_order = OrderInside([soup, salad], kirill, anna, restaurant)
 svetlana_order = OrderOutside([soup, salad], svetlana, restaurant)
-# print(len(restaurant.completed_orders))
-# print(len(restaurant.current_orders))
-# print(svetlana_order)
-# print(kirill_order.total_amount)
-# print(svetlana_order.date_order)
-# print(kirill_order.flag_done)
-# kirill_order.change_flag_done(restaurant)
-# print(len(restaurant.completed_orders))
-# print(len(restaurant.current_orders))
-# print(kirill_order.flag_done)
-# print(str(svetlana))
-# print(str(kirill))
-# svetlana.change_adress("ул. Гв.Широнинцев, д.222, кв.1")
-# print(str(svetlana))
-# print(str(soup))
-# print(str(anna))
-# print(soup.dish_name)
-# print(str(kirill_order))
-# print(restaurant.menu)
+
+# блюда заказа кирилла не приготовлены, они добавляются в список блюд повара, что нужно приготовить
+kirill_order = OrderInside([soup, salad], kirill, anna, restaurant)
+# смотрим статусы готовности блюд заказа
+print(kirill_order.flag_rediness)
+# смотрим список блюд повара, что нужно приготовить
+print(vlad.cooking_dish)
+# повар приготовил блюдо 1(салат) и меняет статус готовности,
+# в список блюд, готовых на вынос официанта добавляется это блюдо
+vlad.change_flag_rediness(1, kirill_order)
+# смотрим статусы готовности блюд заказа
+print(kirill_order.flag_rediness)
+# смотрим список блюд повара, что нужно приготовить
+print(vlad.cooking_dish)
+# видим это блюдо в списке блюд готовых на вынос официанта
+print(anna.ready_take_out)
+# официант вынес блюдо, он меняет статус блюда, блюдо удаляется из списка на вынос
+anna.change_flag_rediness(1, kirill_order)
+# смотрим статусы готовности блюд заказа
+print(kirill_order.flag_rediness)
+# видим, что блюдо в списке блюд готовых на вынос официанта, отсутствует
+print(anna.ready_take_out)
