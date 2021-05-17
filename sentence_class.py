@@ -4,8 +4,7 @@ import re
 
 
 class SentenceIterator:
-    """This class is an iterator for a class Sentence.
-    Allows the class Sentence to be used as an iterable"""
+    """Iterator for class Sentence"""
     def __init__(self, words):
         """Initializing the fields of the class"""
         self.__words = words
@@ -16,6 +15,9 @@ class SentenceIterator:
         """Special functionality to a method words so that it acts like a getter."""
         return self.__words
 
+    def __iter__(self):
+        """Returns the corresponding iterator object"""
+        return self
 
     def __next__(self):
         """Method must return the next item in the sequence"""
