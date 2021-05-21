@@ -1,5 +1,6 @@
 """Это основной модуль игры крестики-нолики"""
 import logging
+from random import choice
 import numpy as np
 
 logging.basicConfig(filename="tic_tac_toe.log", \
@@ -103,18 +104,62 @@ class TicTacToe:
         TicTacToe.cell_validity(row, col)
         return bool(np.abs(self.field[row][col]))
 
-    def do_stroke(self, player, row, col):
+    def do_stroke(self, player, row, col, clean_cell = None):
         """Функция осуществления хода. В зависимости от игрока, ставим либо 1, либо -1
         в указанную ячейку. 1 соответствует Х, -1 соответствует О.
-        И передаем ход второму игроку (stroke = not player)"""
-        TicTacToe.player_validity(player)
-        self.cell_busy_validity(row, col)
-
-        flag = -1 if player else 1
+        И передаем ход второму игроку (stroke = not player).
+        Для minimax ребуется очистка клетки, поэтому, если передан флажок в функцию,
+        что указывает на то, что клетку нужно очистить, а не заполнить Х/О,
+        осуществится ход с установлением 0 в клетку поля"""
+        if clean_cell is not None:
+            flag = 0
+        else:
+            TicTacToe.player_validity(player)
+            self.cell_busy_validity(row, col)
+            flag = -1 if player else 1
         self.field[row][col] = flag
         self.stroke = not player
+
 
     def change_count(self, player):
         """Функция смены счета. Для соответствующего игрока инкрементируем значение в count"""
         TicTacToe.player_validity(player)
         self.count[player] += 1
+
+    @property
+    def empty_cell(self):
+        """Функция возвращая массив индексов пустых клеток поля"""
+        empty = []
+        for row in range(len(self.field)):
+            for col in range(len(self.field[0])):
+                if not self.field[row][col]:
+                    empty.append([row, col])
+        return empty
+
+    @property
+    def minimax(self):
+        """Функция ИИ игры ХО, возвращает оценку и лучший ход в массиве ходов
+        (случайный среди лучших). Он должен выбрать ход с наибольшим количеством очков,
+        когда ИИ играет за Х, и ход с наименьшим количеством очков, когда за Х играет человек."""
+        if self.check_win(1):
+            return -10, [None, None]
+        if self.check_standoff:
+            return 0, [None, None]
+        if self.check_win(0):
+            return 10, [None, None]
+
+        scores, moves = [], []
+        best = 10 if self.stroke else -10
+
+        for row, col in self.empty_cell:
+            self.do_stroke(self.stroke, row, col)
+            val, _ = self.minimax
+            scores.append(val)
+            moves.append([row, col])
+            self.do_stroke(self.stroke, row, col, "clean")
+            if self.stroke:
+                best = min(scores)
+            else:
+                best = max(scores)
+
+        return best, choice([mv for mv, sc in zip(moves, scores) if sc == best])
