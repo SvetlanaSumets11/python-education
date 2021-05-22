@@ -1,4 +1,4 @@
-"""Это основной модуль игры крестики-нолики"""
+"""This is the main module of the tic-tac-toe game."""
 import logging
 from random import choice
 import numpy as np
@@ -8,13 +8,14 @@ logging.basicConfig(filename="tic_tac_toe.log", \
 
 
 class TicTacToe:
-    """Это класс основных функций игры"""
+    """This is a class of the main functions of the game"""
     def __init__(self, name_1, name_2):
-        """Инициализация полей. Игроки хранятся в виде списка имен players.
-        stroke - переменная хода, есть указан 0, то ход Х, если 1, то ход О.
-        field - поле игры, состоящее из 0; если ставится Х, ячейка = 1, если О, то -1.
-        win - равна 0 или 1 в зависимости от игрока-победителя, в случае ничьи = None.
-        count - счет игры, в зависимости от игрока-победителя икрементируется"""
+        """Initialization of fields. Players are stored as a list of players names.
+        stroke is a variable of the stroke, there is 0 specified,
+        then the move is X, if 1, then the move is O.
+        field - field of the game, consisting of 0; if X is placed, cell = 1, if O, then -1.
+        win - equal to 0 or 1 depending on the winning player, in case of a tie = None.
+        count - the game score, depending on the winning player, it is incremented"""
         self.players = [name_1, name_2]
         self.stroke = 0
         self.field = np.array([[0] * 3 for i in range(3)])
@@ -22,38 +23,38 @@ class TicTacToe:
         self.count = [0, 0]
 
     def restart(self):
-        """При повторном запуске игры для тех же игроков нужно обнулить поле игры,
-        установить снова первый ход Х, "обнулить" победителя"""
+        """When you restart the game for the same players, you need to reset the game field,
+        set again the first move X, "zero" the winner"""
         self.stroke = 0
         self.field = np.array([[0] * 3 for i in range(3)])
         self.win = None
 
     @staticmethod
     def cell_validity(row, col):
-        """Индексы строки и столбца должны быть от 0 до 2"""
+        """Row and column indices must be between 0 and 2"""
         if row not in list(range(3)):
             raise ValueError("Неверное значение строки")
         if col not in list(range(3)):
             raise ValueError("Неверное значение столбца")
 
     def cell_busy_validity(self, row, col):
-        """Ячейка должна быть пуста для осуществления хода"""
+        """The cell must be empty to make a move"""
         TicTacToe.cell_validity(row, col)
         if self.cell_is_busy(row, col):
             raise Exception("Ячейка занята")
 
     @staticmethod
     def player_validity(player):
-        """Игроки во всей программе = 0 или 1"""
+        """Players in the whole program = 0 or 1"""
         if player not in [0, 1]:
             raise ValueError("Неверное значение игрока")
 
     def check_win(self, player):
-        """Проверка на победу одного из игроков.
-        Поскольку, если в ячейке стоит Х, в field эта ячейка = 1,
-        если стоит О, то -1, то достаточно проверить, чтоб хотя бы одна сумма чисел
-        field по строкам, столбцам или диагоналям была равна 3 или -3 в зависимости от
-        игрока (играющего за Х или О), для которого осуществляется проверка"""
+        """A check to see if one of the players wins.
+        Since, if there is X in a cell, in field this cell = 1,
+        if it is O, then -1, then it is enough to check that at least one sum of numbers
+        field by row, column, or diagonal was 3 or -3 depending on
+        the player (playing for X or O), for whom the check is carried out"""
         TicTacToe.player_validity(player)
 
         flag = -3 if player else 3
@@ -64,26 +65,26 @@ class TicTacToe:
 
     @property
     def check_standoff(self):
-        """Функция проверки на ничью. Если ни один из игроков не выиграл,
-        и поле заполнено, то вернется True - ничья"""
+        """Draw check function. If none of the players won,
+        and the field is filled, then True will return - a draw"""
         return not self.check_win(0) and \
         not self.check_win(1) and \
         self.field_is_filled
 
     @property
     def field_is_filled(self):
-        """Проверка на заполненность поля. Если привести field (что состоит из
-        0 - если ячейка пустая, 1 - если стоит Х, -1 - если стоит О) к абсолютным значениям,
-        тогда заполненные клетки будут равны 1, пустые - 0. В итоге вернется True, если
-        все элементы списка будут равны 1 - поле заполнено"""
+        """Checking if the field is full. If you bring field (which consists of
+        0 - if the cell is empty, 1 - if there is X, -1 - if there is O) to absolute values,
+        then the filled cells will be equal to 1, empty - 0. As a result, True will be returned if
+        all elements of the list will be equal to 1 - the field is filled"""
         return np.all(np.abs(self.field))
 
     @property
     def game_done(self):
-        """Игра завершится, если будет ничья (тогда win = None),
-        если один из игроков выиграет (проверяем на выигрыш каждого игрока,
-        записываем его в победители (win = player) и меняем счет игры (change_count(player)).
-        В файл записываются соответствующие логи."""
+        """The game will end if there is a draw (then win = None),
+        if one of the players wins (check for each player's winnings,
+        we write it to the winners (win = player) and change the game score (change_count (player)).
+        The corresponding logs are written to the file."""
         if self.check_standoff:
             self.win = None
             logging.info("Партия между %s и %s закончилась ничьей. Счет %s:%s",
@@ -99,18 +100,18 @@ class TicTacToe:
         return False
 
     def cell_is_busy(self, row, col):
-        """Проверка на занятость клетки. Вернется абсотлютное значение ячейки
-        (при 1(для Х) и -1(для О) = 1, при 0 = 0)"""
+        """Check if the cell is occupied. Will return the absolute value of the cell
+        (for 1 (for X) and -1 (for O) = 1, for 0 = 0)"""
         TicTacToe.cell_validity(row, col)
         return bool(np.abs(self.field[row][col]))
 
     def do_stroke(self, player, row, col, clean_cell = None):
-        """Функция осуществления хода. В зависимости от игрока, ставим либо 1, либо -1
-        в указанную ячейку. 1 соответствует Х, -1 соответствует О.
-        И передаем ход второму игроку (stroke = not player).
-        Для minimax ребуется очистка клетки, поэтому, если передан флажок в функцию,
-        что указывает на то, что клетку нужно очистить, а не заполнить Х/О,
-        осуществится ход с установлением 0 в клетку поля"""
+        """The function of making a move. Depending on the player, we put either 1 or -1
+        to the specified cell. 1 corresponds to X, -1 corresponds to O.
+        And we pass the move to the second player (stroke = not player).
+        For minimax, the jail needs to be cleared, so if a flag is passed to a function,
+        which indicates that the cell needs to be cleaned and not filled with X / O,
+        a move is made with the establishment of 0 in the square of the field"""
         if clean_cell is not None:
             flag = 0
         else:
@@ -122,13 +123,13 @@ class TicTacToe:
 
 
     def change_count(self, player):
-        """Функция смены счета. Для соответствующего игрока инкрементируем значение в count"""
+        """Account change function. For the corresponding player, increment the value in count"""
         TicTacToe.player_validity(player)
         self.count[player] += 1
 
     @property
     def empty_cell(self):
-        """Функция возвращая массив индексов пустых клеток поля"""
+        """Function returning an array of indices of empty cells of the field"""
         empty = []
         for row in range(len(self.field)):
             for col in range(len(self.field[0])):
@@ -138,9 +139,9 @@ class TicTacToe:
 
     @property
     def minimax(self):
-        """Функция ИИ игры ХО, возвращает оценку и лучший ход в массиве ходов
-        (случайный среди лучших). Он должен выбрать ход с наибольшим количеством очков,
-        когда ИИ играет за Х, и ход с наименьшим количеством очков, когда за Х играет человек."""
+        """AI function of the game XO, returns the score and the best move in an array of moves
+        (random among the best). He must choose the move with the most points,
+        when the AI plays for X, and the move with the lowest score when a person plays for X."""
         if self.check_win(1):
             return -10, [None, None]
         if self.check_standoff:

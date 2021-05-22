@@ -1,4 +1,4 @@
-"""Этот модуль для консольного интерфейса игры крестики-нолики"""
+"""This module for the tic-tac-toe game console interface"""
 import sys
 from random import randint
 from texttable import Texttable
@@ -10,14 +10,18 @@ player = {0: 'X', 1: 'O'}
 
 
 def mask_field(field):
-    """Накладываем маску на поле игры, все 0 станут пустыми строками,
-    все ячейки с 1 станут Х, все ячейки с -1 станут О"""
+    """We put a mask on the field of the game, all 0s will become empty lines,
+    all cells with 1 become X, all cells with -1 become O"""
     return np.array([[mask[cell] for cell in row] for row in field])
 
 
 def draw_field(field):
-    """Рисуем поле игры"""
+    """Draw the game field"""
     new_field = mask_field(field)
+    for i, row in enumerate(new_field):
+        for j, item in enumerate(row):
+            if item == " ":
+                new_field[i][j] = i * 3 + j + 1
     table = Texttable()
     for item in range(3):
         table.add_row(new_field[item])
@@ -25,38 +29,53 @@ def draw_field(field):
 
 
 def coor(num):
-    """Пользователь пишет номер ячейки 1-9, что преобразовуется
-    в координаты элемента списка поля"""
+    """User writes cell number 1-9, which is converted
+    to the coordinates of the list item of the field"""
     return (num - 1) // 3, (num - 1) % 3
 
 
 def play_input(obj):
-    """Обработка осуществления хода пользователем. Он должен вводить
-    лишь цифры, цифры лишь от 1 до 9, цифру лишь той ячейки, что свободна,
-    в ином случае ход не будет засчитан, и программа попросит повторить попытку
-    ввода номера ячейки, написав соответствующее смс об ошибке ввода"""
+    """Handling the execution of a move by the user. He must enter
+    only numbers, numbers only from 1 to 9 or the cell coordinate (example: 01),
+    the number of only the cell that is free, otherwise the move will not be counted,
+    and the program will ask you to try again to enter the cell number by writing
+    corresponding SMS about input error"""
     while True:
         player_answer = input("Ход {} за {} в клетку: "\
             .format((obj.players[obj.stroke]).upper(), player[obj.stroke]))
-        try:
-            player_answer = int(player_answer)
-        except TypeError:
-            print("Введите число от 1 до 9")
-            continue
+        if len(player_answer) == 1:
+            try:
+                player_answer = int(player_answer)
+            except TypeError:
+                print("Введите число от 1 до 9 либо координату клетки (пример: 01)")
+                continue
+        else:
+            if len(player_answer) != 2:
+                print("Введите число от 1 до 9 либо координату клетки (пример: 01)")
+                continue
 
+        coord = [f"{i // 3}{i % 3}" for i in range(9)]
         if player_answer in list(range(1, 10)):
             if not obj.cell_is_busy(coor(player_answer)[0], coor(player_answer)[1]):
                 return coor(player_answer)[0], coor(player_answer)[1]
             print("Эта клетка уже занята")
+
+        elif player_answer in coord:
+            answer = list(map(int, list(player_answer)))
+            if not obj.cell_is_busy(answer[0], answer[1]):
+                return answer[0], answer[1]
+            print("Эта клетка уже занята")
+
         else:
-            print("Введите число от 1 до 9")
+            print("Введите число от 1 до 9 либо координату клетки (пример: 01)")
 
 
 def restart_game(obj, a_i):
-    """После окончания игры у пользователя спрашивают, хочет ли он повторить
-    поединок в том же составе, в зависимости от ответа, начнется либо новая игра,
-    для которой "обнулятся" соответствующие поля, счет будет вестись для текущих игроков,
-    либо программа выйдет в меню, а при повторном начале игры запросит заново имена игроков"""
+    """After the end of the game, the user is asked if he wants to repeat
+    a duel in the same composition, depending on the answer, either a new game will start,
+    for which the corresponding fields will be "reset", the score will be kept for
+    the current players, or the program will exit to the menu, and upon restarting
+    the game it will ask again for the names of the players"""
     print("Хотите сыграть еще раз?")
     answer = input("N/Y: ")
     answer = answer.lower()
@@ -67,19 +86,19 @@ def restart_game(obj, a_i):
         main_game(obj, a_i)
 
 def user_stroke(obj):
-    """Функция осуществления хода игроком-человеком. Человек вводит число 1-9,
-    что соответствует ячейке поля, куда он хочет сделать ход, осуществляется ход,
-    где автоматически право ходить следующим передается сопернику, отрисовуется новое
-    состояние поля"""
+    """The function of making a move by a human player. The person enters the number 1-9,
+    which corresponds to the cell of the field where he wants to make a move, a move
+    is made, where the right to move next is automatically transferred to the opponent,
+    a new one is drawn field state"""
     row, col = play_input(obj)
     obj.do_stroke(obj.stroke, row, col)
     draw_field(obj.field)
 
 def ai_stroke(obj):
-    """Функция осуществления хода компьютером. С minimax распаковуем индексы
-    выбранной для хода клетки, если это не конец игры (выигрыш одного из игроков или ничья),
-    то отображаем надпись про ход игрока Компьютер и делаем ход в выбранную клетку,
-    отрисовуем новое состояние поля игры."""
+    """The function of making a move by the computer. Using minimax to unpack indexes
+    the cell chosen for the move, if this is not the end of the game (a win for one of
+    the players or a draw), then we display the inscription about the player's move Computer
+    and make a move to the selected cell, Let's draw the new state of the game field."""
     row, col = obj.minimax[1]
     if row is not None:
         print("Ход {} за {} в клетку: {}"\
@@ -91,16 +110,15 @@ def ai_stroke(obj):
 
 
 def main_game(obj, a_i):
-    """Функция самой игры. На каждом шаге отрисовуется поле. Пользователь вводит
-    номер ячейки, что преобразовуется в координаты, выполняется ход. Цикл длится,
-    пока game_done не приймет значение True (в случае, если наступит ничья, или
-    выиграет один из игроков). Печатаем победителя/смс про ничью. И спрашиваем
-    игрока, хочет ли он сыграть снова в том же составе.
+    """The function of the game itself. A field is drawn at each step. User enters
+    the cell number that is converted to coordinates, the move is performed.
+    The cycle lasts until game_done evaluates to True (in case of a tie, or one
+    of the players wins). We print the winner / sms about the draw. And we ask player,
+    whether he wants to play again with the same lineup.
 
-    Если игра идет между двумя людьми, просто поочередно ход предоставляется
-    каждому. Если с компьютером, то в зависимости от того, кто играет за Х (то есть
-    делает первых ход)(кто играет за Х, программа выбирает случайным образом),
-    меняется порядок хода."""
+    If the game is between two people, the move is simply given alternately to each.
+    If with a computer, then depending on who plays for X (that is makes the first move)
+    (who plays for X, the program chooses at random), the order of the move changes."""
     draw_field(obj.field)
     while not obj.game_done:
         if a_i is None:
@@ -123,14 +141,12 @@ def main_game(obj, a_i):
 
 
 def play(a_i = None):
-    """Функция начала игры.
-    Если игра происходит между двумя игроками-людьми,
-    просто вводятся имена, где пользователи сами могут решить, за кого хотят
-    играть. Создается объект, и запускается игра.
-    Если игра будет между человком и компьютером, тогда прежде мы случайно
-    выбираем, кто будет играть за крестик, в зависимости от результата,
-    передаем в обьект в правильном порядке имена игроков (имя игрока и "Компьютер").
-    И запускаем игру"""
+    """Game start function. If the game takes place between two human players,
+    names are simply entered, where users can decide for themselves who they want
+    play. The object is created and the game starts. If the game is between a human
+    and a computer, then before we accidentally we choose who will play for the cross,
+    depending on the result, we transfer the names of the players (the player's name
+    and "Computer") to the object in the correct order. And we start the game"""
     if a_i is None:
         name_1 = input("Введите имя первого игрока (X): ")
         name_2 = input("Введите имя второго игрока (O): ")
@@ -148,7 +164,7 @@ def play(a_i = None):
 
 
 def draw_menu():
-    """Функция отрисовки меню. В виде таблички выводятся пункты меню"""
+    """Menu rendering function. Menu items are displayed in the form of a plate"""
     point_menu = [["1 Играть >"],
                 ["2 Играть с компьютером >"],
                 ["3 Посмотреть лог побед >"],
@@ -161,10 +177,10 @@ def draw_menu():
 
 
 def input_menu():
-    """Функция выбора пункта меню. Пользователь должен вводить лишь цифры,
-    цифры лишь от 1 до 5, в ином случае пункт меню не будет выбран,
-    и программа попросит повторить попытку выбора,
-    написав соответствующее смс об ошибке ввода"""
+    """Menu item selection function. The user only needs to enter numbers,
+    digits only from 1 to 5, otherwise the menu item will not be selected,
+    and the program will ask you to try the selection again,
+    by writing an appropriate SMS about an input error"""
     while True:
         point = input("Выберите пункт меню (1 - 5): ")
         try:
@@ -178,12 +194,14 @@ def input_menu():
 
 
 def menu():
-    """Обработка каждого пункта меню. Если пользователь выбрал
-    Играть - запустится игра для двоих игроков-людей.
-    Играть с компьютером - запустится игра между компьютером и человеком.
-    Посмотреть лог побед - выведется содержимое файла (или смс, что файл пуст).
-    Очистить логи побед - очистится файл с логами, и выведется соответствующее смс.
-    Выход - выполнение скрипта завершится."""
+    """Processing of each menu item. If the user chose
+    Play - starts a game for two human players.
+    Play with a computer - a game between a computer and a human will start.
+    View the victory log - the contents of the file will be displayed
+    (or sms that the file is empty).
+    Clear victory logs - the file with the logs will be cleared,
+    and the corresponding SMS will be displayed.
+    Exit - script execution will end."""
     draw_menu()
     responce = input_menu()
     if responce == 0:

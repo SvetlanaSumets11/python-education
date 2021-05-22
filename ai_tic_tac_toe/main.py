@@ -1,4 +1,4 @@
-"""Модуль запуска игры"""
+"""Game launcher"""
 from console_interface import menu
 
 if __name__ == '__main__':
