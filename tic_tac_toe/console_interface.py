@@ -1,4 +1,4 @@
-"""Этот модуль для консольного интерфейса игры крестики-нолики"""
+"""This module for the tic-tac-toe game console interface"""
 import sys
 from texttable import Texttable
 import numpy as np
@@ -9,14 +9,18 @@ player = {0: 'X', 1: 'O'}
 
 
 def mask_field(field):
-    """Накладываем маску на поле игры, все 0 станут пустыми строками,
-    все ячейки с 1 станут Х, все ячейки с -1 станут О"""
+    """We put a mask on the field of the game, all 0s will become empty lines,
+    all cells with 1 become X, all cells with -1 become O"""
     return np.array([[mask[cell] for cell in row] for row in field])
 
 
 def draw_field(field):
-    """Рисуем поле игры"""
+    """Draw the game field"""
     new_field = mask_field(field)
+    for i, row in enumerate(new_field):
+        for j, item in enumerate(row):
+            if item == " ":
+                new_field[i][j] = i * 3 + j + 1
     table = Texttable()
     for item in range(3):
         table.add_row(new_field[item])
@@ -24,38 +28,53 @@ def draw_field(field):
 
 
 def coor(num):
-    """Пользователь пишет номер ячейки 1-9, что преобразовуется
-    в координаты элемента списка поля"""
+    """User writes cell number 1-9, which is converted
+    to the coordinates of the list item of the field"""
     return (num - 1) // 3, (num - 1) % 3
 
 
 def play_input(obj):
-    """Обработка осуществления хода пользователем. Он должен вводить
-    лишь цифры, цифры лишь от 1 до 9, цифру лишь той ячейки, что свободна,
-    в ином случае ход не будет засчитан, и программа попросит повторить попытку
-    ввода номера ячейки, написав соответствующее смс об ошибке ввода"""
+    """Handling the execution of a move by the user. He must enter
+    only numbers, numbers only from 1 to 9 or coordinates of the form 01, 02,
+    the number of only the cell that is free, otherwise the move will not be counted,
+    and the program will ask you to try again to enter the cell number,
+    by writing an appropriate SMS about an input error"""
     while True:
         player_answer = input("Ход {} за {} в клетку: "\
             .format((obj.players[obj.stroke]).upper(), player[obj.stroke]))
-        try:
-            player_answer = int(player_answer)
-        except TypeError:
-            print("Введите число от 1 до 9")
-            continue
+        if len(player_answer) == 1:
+            try:
+                player_answer = int(player_answer)
+            except TypeError:
+                print("Введите число от 1 до 9 либо координату клетки (пример: 01)")
+                continue
+        else:
+            if len(player_answer) != 2:
+                print("Введите число от 1 до 9 либо координату клетки (пример: 01)")
+                continue
 
+        coord = [f"{i // 3}{i % 3}" for i in range(9)]
         if player_answer in list(range(1, 10)):
             if not obj.cell_is_busy(coor(player_answer)[0], coor(player_answer)[1]):
                 return coor(player_answer)[0], coor(player_answer)[1]
             print("Эта клетка уже занята")
+
+        elif player_answer in coord:
+            answer = list(map(int, list(player_answer)))
+            if not obj.cell_is_busy(answer[0], answer[1]):
+                return answer[0], answer[1]
+            print("Эта клетка уже занята")
+
         else:
-            print("Введите число от 1 до 9")
+            print("Введите число от 1 до 9 либо координату клетки (пример: 01)")
 
 
 def restart_game(obj):
-    """После окончания игры у пользователя спрашивают, хочет ли он повторить
-    поединок в том же составе, в зависимости от ответа, начнется либо новая игра,
-    для которой "обнулятся" соответствующие поля, счет будет вестись для текущих игроков,
-    либо программа выйдет в меню, а при повторном начале игры запросит заново имена игроков"""
+    """After the end of the game, the user is asked if he wants to repeat
+    a duel in the same composition, depending on the answer, either a new game
+    will start, for which the corresponding fields will be "reset", the score will
+    be kept for the current players, or the program will exit to the menu, and upon
+    restarting the game it will ask again for the names of the players"""
     print("Хотите сыграть еще раз?")
     answer = input("N/Y: ")
     answer = answer.lower()
@@ -67,11 +86,11 @@ def restart_game(obj):
 
 
 def main_game(obj):
-    """Функция самой игры. На каждом шаге отрисовуется поле. Пользователь вводит
-    номер ячейки, что преобразовуется в координаты, выполняется ход. Цикл длится,
-    пока game_done не приймет значение True (в случае, если наступит ничья, или
-    выиграет один из игроков). Печатаем победителя/смс про ничью. И спрашиваем
-    игрока, хочет ли он сыграть снова в том же составе."""
+    """The function of the game itself. A field is drawn at each step. User enters
+    the cell number that is converted to coordinates, the move is performed. The cycle lasts
+    until game_done evaluates to True (in case of a tie, or
+    one of the players wins). We print the winner / sms about the draw. And we ask
+    player, whether he wants to play again with the same lineup."""
     draw_field(obj.field)
     while not obj.game_done:
         row, col = play_input(obj)
@@ -87,8 +106,8 @@ def main_game(obj):
 
 
 def play():
-    """Функция начала игры. Пользователь вводит имена игроков, создается
-    обьект класса TicTacToe, запускается игра."""
+    """Game start function. User enters player names, is created
+    object of class TicTacToe, the game starts."""
     name_1 = input("Введите имя первого игрока (X): ")
     name_2 = input("Введите имя второго игрока (O): ")
     game = T.TicTacToe(name_1, name_2)
@@ -96,7 +115,7 @@ def play():
 
 
 def draw_menu():
-    """Функция отрисовки меню. В виде таблички выводятся пункты меню"""
+    """Menu rendering function. Menu items are displayed in the form of a plate"""
     point_menu = [["1 Играть >"],
                 ["2 Посмотреть лог побед >"],
                 ["3 Очистить логи побед >"],
@@ -108,10 +127,10 @@ def draw_menu():
 
 
 def input_menu():
-    """Функция выбора пункта меню. Пользователь должен вводить лишь цифры,
-    цифры лишь от 1 до 4, в ином случае пункт меню не будет выбран,
-    и программа попросит повторить попытку выбора,
-    написав соответствующее смс об ошибке ввода"""
+    """Menu item selection function. The user only needs to enter numbers,
+    digits only from 1 to 4, otherwise the menu item will not be selected,
+    and the program will ask you to try the selection again,
+    by writing an appropriate SMS about an input error"""
     while True:
         point = input("Выберите пункт меню (1 - 4): ")
         try:
@@ -125,11 +144,13 @@ def input_menu():
 
 
 def menu():
-    """Обработка каждого пункта меню. Если пользователь выбрал
-    Играть - запустится игра;
-    Посмотреть лог побед - выведется содержимое файла (или смс, что файл пуст).
-    Очистить логи побед - очистится файл с логами, и выведется соответствующее смс.
-    Выход - выполнение скрипта завершится."""
+    """Processing of each menu item. If the user chose
+    Play - the game will start;
+    View the victory log - the contents of the file will be displayed
+    (or sms that the file is empty).
+    Clear victory logs - the file with the logs will be cleared, and
+    the corresponding SMS will be displayed.
+    Exit - script execution will end."""
     draw_menu()
     responce = input_menu()
     if responce == 0:
