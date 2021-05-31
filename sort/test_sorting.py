@@ -27,6 +27,15 @@ def test_quick_sort(test_arg, expected):
     assert quick_sort(test_arg) == expected
 
 
+@pytest.mark.parametrize("test_arg, expected",
+                        form_parametrize_quick_sort())
+
+
+def test_iter_quick_sort(test_arg, expected):
+    """Testing iterative Quick Sort"""
+    assert quick_sort(test_arg) == expected
+
+
 def form_parametrize_binary_search_true():
     """We form parameters for testing binary search in the case when
     the element is contained in the list"""
