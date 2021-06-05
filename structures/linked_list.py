@@ -93,7 +93,6 @@ class LinkedList:
             current = current.next
         return True
 
-
     def delete(self, ind_node):
         """Method for removing a node at a given index from the list"""
         if ind_node < 0:
@@ -170,5 +169,5 @@ class LinkedList:
 # print(list1)
 # print(list1.get(1))
 # print(len(list1))
-# list1.delete(0)
+# list1.delete(2)
 # print(list1)

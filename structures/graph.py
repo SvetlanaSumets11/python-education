@@ -7,7 +7,6 @@ class LinkedListGraph(LinkedList):
     def __init__(self):
         super().__init__()
 
-
     def delete_edge_vertex(self, value):
         """Method of removing all edges that contain
         a vertex with a specified value"""
@@ -66,6 +65,12 @@ class Graph:
             self.vertex.delete_value(value)
         else:
             raise ValueError("Такой вершины не существует")
+
+    def get_vertex(self, ind):
+        return self.vertex.get(ind)
+
+    def get_edge(self, ind):
+        return self.edges.get(ind)
 
     def __str__(self):
         current_vertex = self.vertex.head
