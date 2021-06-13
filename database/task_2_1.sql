@@ -1,18 +1,18 @@
 CREATE TABLE public.users (
-    user_id int NOT NULL,
+    user_id serial NOT NULL,
     email varchar(255),
     password varchar(255),
     first_name varchar(255),
     last_name varchar(255),
     middle_name varchar(255),
-    is_staff int,
+    is_staff smallint,
     country varchar(255),
     city varchar(255),
     address text
 );
 
 CREATE TABLE public.carts (
-    cart_id int NOT NULL,
+    cart_id serial NOT NULL,
     users_user_id int,
     subtotal decimal,
     total decimal,
@@ -25,7 +25,7 @@ CREATE TABLE public.cart_product (
 );
 
 CREATE TABLE public.products (
-    product_id int NOT NULL,
+    product_id serial NOT NULL,
     product_title varchar(255),
     product_description text,
     in_stock int,
@@ -35,13 +35,13 @@ CREATE TABLE public.products (
 );
 
 CREATE TABLE public.categories (
-    category_id int NOT NULL,
+    category_id serial NOT NULL,
     category_tittle varchar(255),
     category_description text
 );
 
 CREATE TABLE public.orders (
-    order_id int NOT NULL,
+    order_id serial NOT NULL,
     carts_cart_id int,
     order_status_order_status_id int,
     shipping_total decimal,
@@ -51,7 +51,7 @@ CREATE TABLE public.orders (
 );
 
 CREATE TABLE public.order_status (
-    order_status_id int NOT NULL,
+    order_status_id serial NOT NULL,
     status_name varchar(255)
 );
 
@@ -66,9 +66,6 @@ ALTER TABLE ONLY public.orders
 
 ALTER TABLE ONLY public.order_status
     ADD CONSTRAINT order_status_pkey PRIMARY KEY (order_status_id);
-
-ALTER TABLE ONLY public.cart_product
-    ADD CONSTRAINT cart_product_pkey PRIMARY KEY (carts_cart_id, products_product_id);
 
 ALTER TABLE ONLY public.products
     ADD CONSTRAINT products_pkey PRIMARY KEY (product_id);
