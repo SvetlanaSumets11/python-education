@@ -1,5 +1,5 @@
  CREATE TABLE public.potential_customers (
- 	pot_cus_id int NOT NULL,
+ 	pot_cus_id serial NOT NULL,
  	email varchar(255),
  	name varchar(255),
  	surname varchar(255),
