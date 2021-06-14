@@ -80,11 +80,12 @@ ORDER BY amount DESC LIMIT 10;
 
 
 --Вывести топ 5 юзеров, которые потратили больше всего денег (total в заказе).
-SELECT user_id, last_name, first_name, orders.total
+SELECT user_id, last_name, first_name, sum(orders.total) as amount
 FROM users
-	JOIN carts  ON user_id = users_user_id
-	JOIN orders ON cart_id = carts_cart_id
-ORDER BY orders.total DESC LIMIT 5;
+	LEFT JOIN carts  ON user_id = users_user_id
+	LEFT JOIN orders ON cart_id = carts_cart_id
+GROUP BY user_id, last_name, first_name
+ORDER BY amount DESC NULLS LAST LIMIT 5;
 
 
 --Вывести топ 5 юзеров, которые сделали больше всего заказов (кол-во заказов).
