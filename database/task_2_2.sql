@@ -13,7 +13,7 @@ SELECT * FROM order_status;
 -- Вывести заказы, которые успешно доставлены и оплачены
 SELECT order_id, status_name
 FROM orders JOIN order_status ON order_status_order_status_id = order_status_id
-WHERE status_name IN ('Finished', 'Paid');
+WHERE status_name = 'Finished';
 
 
 -- Вывести продукты, цена которых больше 80.00 и меньше или равно 150.00
@@ -95,8 +95,7 @@ WHERE carts_cart_id IS NULL;
 SELECT AVG(total) AS "Average_amount"
 FROM orders JOIN order_status
 	ON order_status_order_status_id = order_status_id
-WHERE status_name = 'Finished'
-ORDER BY 1 DESC;
+WHERE status_name = 'Finished';
 
 
 -- Вывести максимальную сумму сделки за 3 квартал 2020
@@ -107,3 +106,8 @@ WHERE EXTRACT(QUARTER FROM created_at) = 3
 GROUP BY order_id, created_at
 ORDER BY 3 DESC LIMIT 1;
 
+-- Вывести максимальную сумму сделки за 3 квартал 2020
+SELECT MAX(total) as total_sum
+FROM orders
+WHERE EXTRACT(QUARTER FROM created_at) = 3
+	AND EXTRACT(YEAR FROM created_at) = 2020;
