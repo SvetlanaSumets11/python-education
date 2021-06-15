@@ -53,3 +53,19 @@ EXPLAIN SELECT order_id, created_at
 FROM orders
 WHERE EXTRACT(MONTH FROM created_at) > 7
 	AND EXTRACT(YEAR FROM created_at) = 2020;
+
+
+
+EXPLAIN SELECT user_id, last_name, first_name, count(cart_id) as amount, status_name
+FROM users
+	JOIN carts        ON user_id = users_user_id
+	JOIN orders       ON cart_id = carts_cart_id
+	JOIN order_status ON order_status_order_status_id = order_status_id
+WHERE last_name ILIKE '%2%' AND first_name ILIKE '%1%'
+GROUP BY user_id, last_name, first_name, status_name
+ORDER BY amount DESC;
+
+-- DROP INDEX idx_last_first_name;
+
+CREATE INDEX idx_last_first_name ON users(last_name, first_name)
+WHERE last_name ILIKE '%2%' AND first_name ILIKE '%1%';
